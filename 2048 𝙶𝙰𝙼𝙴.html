@@ -1,0 +1,769 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>𝐆𝐑𝐊𝐎𝐊 2048 PRO</title>
+
+<style>
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    padding: 16px 12px 30px;
+    background: #000;
+    color: #fff;
+    font-family: Arial, sans-serif;
+    text-align: center;
+}
+
+.brand {
+    font-size: 36px;
+    font-weight: 900;
+    margin: 18px 0 8px;
+    letter-spacing: 2px;
+}
+
+.subtitle {
+    color: #777;
+    font-size: 12px;
+    letter-spacing: 3px;
+    margin-bottom: 30px;
+}
+
+.screen {
+    display: none;
+}
+
+.screen.active {
+    display: block;
+}
+
+button {
+    background: #151515;
+    color: white;
+    border: 1px solid #383838;
+    border-radius: 8px;
+    padding: 13px 16px;
+    font-size: 16px;
+    cursor: pointer;
+}
+
+button:active {
+    background: #333;
+}
+
+.main-button {
+    display: block;
+    width: 230px;
+    max-width: 90%;
+    margin: 12px auto;
+}
+
+.panel {
+    max-width: 380px;
+    margin: 15px auto;
+    padding: 18px;
+    background: #101010;
+    border: 1px solid #303030;
+    border-radius: 10px;
+}
+
+.setting {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 14px 0;
+    border-bottom: 1px solid #292929;
+}
+
+.setting:last-child {
+    border-bottom: none;
+}
+
+.setting button {
+    min-width: 85px;
+    padding: 10px;
+    font-size: 14px;
+}
+
+.setting-actions {
+    display: flex;
+    gap: 6px;
+}
+
+.setting-actions button {
+    min-width: 65px;
+}
+
+input {
+    width: 155px;
+    max-width: 55%;
+    padding: 10px;
+    background: #191919;
+    color: white;
+    border: 1px solid #444;
+    border-radius: 6px;
+    font-size: 15px;
+    outline: none;
+}
+
+input:focus {
+    border-color: #aaa;
+}
+
+.note {
+    color: #888;
+    font-size: 12px;
+    line-height: 1.8;
+}
+
+#badgeList {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 7px;
+    margin: 15px 0;
+}
+
+.badge-button {
+    width: 100%;
+    min-width: 0;
+    padding: 10px 0;
+    margin: 0;
+    font-size: 23px;
+}
+
+.badge-button.selected {
+    border: 2px solid white;
+    background: #303030;
+}
+
+.player {
+    min-height: 28px;
+    margin: 10px 0;
+    font-size: 19px;
+    font-weight: bold;
+    overflow-wrap: anywhere;
+}
+
+.info {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    margin: 18px auto;
+}
+
+.box {
+    background: #151515;
+    border: 1px solid #333;
+    border-radius: 8px;
+    padding: 12px;
+    min-width: 120px;
+}
+
+.label {
+    color: #999;
+    font-size: 13px;
+}
+
+.number {
+    font-size: 24px;
+    font-weight: bold;
+    margin-top: 5px;
+}
+
+#board {
+    width: 100%;
+    max-width: 360px;
+    aspect-ratio: 1;
+    margin: auto;
+    padding: 6px;
+    background: #111;
+    border: 1px solid #333;
+    border-radius: 8px;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    grid-template-rows: repeat(4, 1fr);
+    gap: 6px;
+    touch-action: pan-y;
+}
+
+.cell {
+    background: #202020;
+    border-radius: 5px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: clamp(18px, 6vw, 28px);
+    font-weight: bold;
+    color: white;
+    overflow: hidden;
+}
+
+.v2 { background: #303030; }
+.v4 { background: #414141; }
+.v8 { background: #555; }
+.v16 { background: #686868; }
+.v32 { background: #777; }
+.v64 { background: #888; }
+.v128 { background: #999; color: #000; }
+.v256 { background: #aaa; color: #000; }
+.v512 { background: #bbb; color: #000; }
+.v1024 { background: #ddd; color: #000; }
+.v2048 { background: #fff; color: #000; }
+
+.controls {
+    width: 190px;
+    margin: 18px auto;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 5px;
+}
+
+.controls button {
+    width: 100%;
+    padding: 14px 0;
+    font-size: 20px;
+}
+
+.empty {
+    visibility: hidden;
+}
+
+#message {
+    color: #bbb;
+    min-height: 24px;
+    margin-top: 12px;
+}
+
+.footer {
+    color: #555;
+    font-size: 11px;
+    margin-top: 30px;
+}
+</style>
+</head>
+
+<body>
+
+<header class="brand">𝐆𝐑𝐊𝐎𝐊</header>
+<div class="subtitle">2048 BLACK EDITION</div>
+
+<!-- منوی اصلی -->
+<section id="home" class="screen active">
+    <button class="main-button" onclick="startGame()">شروع</button>
+    <button class="main-button" onclick="showScreen('settings')">
+        تنظیمات
+    </button>
+    <div id="homePlayer" class="player"></div>
+</section>
+
+<!-- تنظیمات -->
+<section id="settings" class="screen">
+    <div class="panel">
+        <h2>تنظیمات</h2>
+
+        <div class="setting">
+            <span>تنظیم صدا</span>
+            <button id="soundButton" onclick="toggleSound()">
+                روشن
+            </button>
+        </div>
+
+        <div class="setting">
+            <span>قابلیت پرو</span>
+            <button onclick="openPro()">پنل پرو</button>
+        </div>
+    </div>
+
+    <button class="main-button" onclick="showScreen('home')">
+        بازگشت
+    </button>
+</section>
+
+<!-- صفحه پرو -->
+<section id="pro" class="screen">
+    <div class="panel">
+        <h2>GRKOK PRO</h2>
+
+        <p class="note">
+            وضعیت پرو را انتخاب کن و نام و نشان دلخواهت را تنظیم کن.
+        </p>
+
+        <div class="setting">
+            <span>وضعیت پرو</span>
+            <div class="setting-actions">
+                <button id="proOn" onclick="setPro(true)">فعال</button>
+                <button id="proOff" onclick="setPro(false)">خاموش</button>
+            </div>
+        </div>
+
+        <div class="setting">
+            <span>نام بازیکن</span>
+            <input
+                id="playerName"
+                type="text"
+                maxlength="20"
+                placeholder="نام بازیکن"
+                autocomplete="off"
+            >
+        </div>
+
+        <h3>انتخاب نشان</h3>
+
+        <div id="badgeList"></div>
+
+        <div id="proMessage" class="note"></div>
+
+        <button class="main-button" onclick="saveProfile()">
+            ذخیره تغییرات
+        </button>
+
+        <div class="note">
+            نشان کنار نام فقط هنگام فعال بودن پرو نمایش داده می‌شود.
+        </div>
+    </div>
+
+    <button class="main-button" onclick="showScreen('settings')">
+        بازگشت
+    </button>
+</section>
+
+<!-- بازی -->
+<section id="game" class="screen">
+
+    <div id="playerDisplay" class="player"></div>
+
+    <div class="info">
+        <div class="box">
+            <div class="label">امتیاز</div>
+            <div class="number" id="score">0</div>
+        </div>
+
+        <div class="box">
+            <div class="label">رکورد</div>
+            <div class="number" id="best">0</div>
+        </div>
+    </div>
+
+    <div id="board"></div>
+    <div id="message"></div>
+
+    <div class="controls">
+        <button class="empty"></button>
+        <button onclick="move('up')">▲</button>
+        <button class="empty"></button>
+
+        <button onclick="move('left')">◀</button>
+        <button onclick="move('down')">▼</button>
+        <button onclick="move('right')">▶</button>
+    </div>
+
+    <button class="main-button" onclick="newGame()">
+        شروع مجدد
+    </button>
+
+    <button class="main-button" onclick="showScreen('home')">
+        منوی اصلی
+    </button>
+</section>
+
+<div class="footer">GRKOK STUDIO</div>
+
+<script>
+"use strict";
+
+const SIZE = 4;
+
+const badges = [
+    "★", "♡", "ᬼ", "꫞", "❁",
+    "𖡹", "✰", "㋛", "✵", "༆",
+    "𒁂", "𒈞", "✞", "✟", "†",
+    "𓇽", "✯", "✠", "✼", "♘",
+    "♜", "♕", "♛", "♚", "♝"
+];
+
+let board = [];
+let score = 0;
+let best = Number(localStorage.getItem("grkok2048_best")) || 0;
+let gameOver = false;
+
+let soundEnabled =
+    localStorage.getItem("grkok2048_sound") !== "off";
+
+let proEnabled =
+    localStorage.getItem("grkok2048_pro") === "on";
+
+let playerName =
+    localStorage.getItem("grkok_player_name") || "GRKOK";
+
+let selectedBadge =
+    localStorage.getItem("grkok_player_badge") || "★";
+
+let audioContext = null;
+
+const boardElement = document.getElementById("board");
+const scoreElement = document.getElementById("score");
+const bestElement = document.getElementById("best");
+const messageElement = document.getElementById("message");
+
+function showScreen(name) {
+    document.querySelectorAll(".screen").forEach(screen => {
+        screen.classList.remove("active");
+    });
+
+    document.getElementById(name).classList.add("active");
+
+    updateSettings();
+    updatePlayerDisplay();
+}
+
+function openPro() {
+    document.getElementById("playerName").value = playerName;
+    document.getElementById("proMessage").textContent = "";
+
+    buildBadgeList();
+    updateSettings();
+
+    showScreen("pro");
+}
+
+function updateSettings() {
+    document.getElementById("soundButton").textContent =
+        soundEnabled ? "روشن" : "خاموش";
+
+    document.getElementById("proOn").style.borderColor =
+        proEnabled ? "#fff" : "#383838";
+
+    document.getElementById("proOff").style.borderColor =
+        !proEnabled ? "#fff" : "#383838";
+}
+
+function toggleSound() {
+    soundEnabled = !soundEnabled;
+
+    localStorage.setItem(
+        "grkok2048_sound",
+        soundEnabled ? "on" : "off"
+    );
+
+    updateSettings();
+
+    if (soundEnabled) beep();
+}
+
+function setPro(enabled) {
+    proEnabled = enabled;
+
+    localStorage.setItem(
+        "grkok2048_pro",
+        enabled ? "on" : "off"
+    );
+
+    updateSettings();
+    updatePlayerDisplay();
+
+    document.getElementById("proMessage").textContent =
+        enabled ? "پرو فعال شد." : "پرو خاموش شد.";
+}
+
+function buildBadgeList() {
+    const container = document.getElementById("badgeList");
+    container.innerHTML = "";
+
+    badges.forEach(badge => {
+        const button = document.createElement("button");
+
+        button.type = "button";
+        button.className = "badge-button";
+        button.textContent = badge;
+
+        if (badge === selectedBadge) {
+            button.classList.add("selected");
+        }
+
+        button.setAttribute("aria-label", "نشان " + badge);
+
+        button.onclick = () => {
+            selectedBadge = badge;
+            buildBadgeList();
+        };
+
+        container.appendChild(button);
+    });
+}
+
+function saveProfile() {
+    const input = document.getElementById("playerName");
+    const name = input.value.trim();
+
+    playerName = name || "GRKOK";
+
+    localStorage.setItem("grkok_player_name", playerName);
+    localStorage.setItem("grkok_player_badge", selectedBadge);
+
+    updatePlayerDisplay();
+
+    document.getElementById("proMessage").textContent =
+        "نام و نشان ذخیره شد.";
+}
+
+function updatePlayerDisplay() {
+    const text = proEnabled
+        ? selectedBadge + " " + playerName
+        : playerName;
+
+    document.getElementById("playerDisplay").textContent = text;
+    document.getElementById("homePlayer").textContent = text;
+}
+
+function beep() {
+    if (!soundEnabled) return;
+
+    try {
+        audioContext = audioContext ||
+            new (window.AudioContext || window.webkitAudioContext)();
+
+        if (audioContext.state === "suspended") {
+            audioContext.resume();
+        }
+
+        const oscillator = audioContext.createOscillator();
+        const gain = audioContext.createGain();
+
+        oscillator.type = "sine";
+        oscillator.frequency.value = 500;
+        gain.gain.value = 0.04;
+
+        oscillator.connect(gain);
+        gain.connect(audioContext.destination);
+
+        oscillator.start();
+        oscillator.stop(audioContext.currentTime + 0.08);
+    } catch (error) {
+        // بازی بدون صدا هم قابل اجراست.
+    }
+}
+
+function startGame() {
+    newGame();
+    showScreen("game");
+}
+
+function newGame() {
+    board = Array.from(
+        { length: SIZE },
+        () => Array(SIZE).fill(0)
+    );
+
+    score = 0;
+    gameOver = false;
+    messageElement.textContent = "";
+
+    addTile();
+    addTile();
+    render();
+}
+
+function addTile() {
+    const empty = [];
+
+    for (let r = 0; r < SIZE; r++) {
+        for (let c = 0; c < SIZE; c++) {
+            if (board[r][c] === 0) {
+                empty.push([r, c]);
+            }
+        }
+    }
+
+    if (empty.length === 0) return;
+
+    const [r, c] = empty[
+        Math.floor(Math.random() * empty.length)
+    ];
+
+    board[r][c] = Math.random() < 0.9 ? 2 : 4;
+}
+
+function render() {
+    boardElement.innerHTML = "";
+
+    for (let r = 0; r < SIZE; r++) {
+        for (let c = 0; c < SIZE; c++) {
+            const value = board[r][c];
+            const cell = document.createElement("div");
+
+            cell.className = "cell";
+
+            if (value > 0) {
+                cell.textContent = value;
+                cell.classList.add("v" + value);
+            }
+
+            boardElement.appendChild(cell);
+        }
+    }
+
+    scoreElement.textContent = score;
+    bestElement.textContent = best;
+
+    updatePlayerDisplay();
+}
+
+function slide(row) {
+    const values = row.filter(value => value !== 0);
+    const result = [];
+    let gained = 0;
+
+    for (let i = 0; i < values.length; i++) {
+        if (values[i] === values[i + 1]) {
+            const merged = values[i] * 2;
+
+            result.push(merged);
+            gained += merged;
+            i++;
+        } else {
+            result.push(values[i]);
+        }
+    }
+
+    while (result.length < SIZE) {
+        result.push(0);
+    }
+
+    return { result, gained };
+}
+
+function move(direction) {
+    if (gameOver) return;
+
+    const previous = JSON.stringify(board);
+    let gained = 0;
+
+    for (let i = 0; i < SIZE; i++) {
+        let row = [];
+
+        for (let j = 0; j < SIZE; j++) {
+            row.push(
+                direction === "left" || direction === "right"
+                    ? board[i][j]
+                    : board[j][i]
+            );
+        }
+
+        if (direction === "right" || direction === "down") {
+            row.reverse();
+        }
+
+        const result = slide(row);
+        row = result.result;
+        gained += result.gained;
+
+        if (direction === "right" || direction === "down") {
+            row.reverse();
+        }
+
+        for (let j = 0; j < SIZE; j++) {
+            if (direction === "left" || direction === "right") {
+                board[i][j] = row[j];
+            } else {
+                board[j][i] = row[j];
+            }
+        }
+    }
+
+    if (previous === JSON.stringify(board)) return;
+
+    score += gained;
+
+    if (gained > 0) beep();
+
+    if (score > best) {
+        best = score;
+        localStorage.setItem("grkok2048_best", String(best));
+    }
+
+    addTile();
+    render();
+
+    if (isGameOver()) {
+        gameOver = true;
+        messageElement.textContent =
+            "بازی تمام شد! برای شروع دوباره دکمه را بزن.";
+    }
+}
+
+function isGameOver() {
+    for (let r = 0; r < SIZE; r++) {
+        for (let c = 0; c < SIZE; c++) {
+            if (board[r][c] === 0) return false;
+
+            if (
+                c < SIZE - 1 &&
+                board[r][c] === board[r][c + 1]
+            ) return false;
+
+            if (
+                r < SIZE - 1 &&
+                board[r][c] === board[r + 1][c]
+            ) return false;
+        }
+    }
+
+    return true;
+}
+
+document.addEventListener("keydown", event => {
+    if (!document.getElementById("game").classList.contains("active")) {
+        return;
+    }
+
+    const keys = {
+        ArrowUp: "up",
+        ArrowDown: "down",
+        ArrowLeft: "left",
+        ArrowRight: "right"
+    };
+
+    if (keys[event.key]) {
+        event.preventDefault();
+        move(keys[event.key]);
+    }
+});
+
+let touchStartX = 0;
+let touchStartY = 0;
+
+boardElement.addEventListener("touchstart", event => {
+    touchStartX = event.changedTouches[0].clientX;
+    touchStartY = event.changedTouches[0].clientY;
+}, { passive: true });
+
+boardElement.addEventListener("touchend", event => {
+    if (!document.getElementById("game").classList.contains("active")) {
+        return;
+    }
+
+    const dx = event.changedTouches[0].clientX - touchStartX;
+    const dy = event.changedTouches[0].clientY - touchStartY;
+
+    if (Math.max(Math.abs(dx), Math.abs(dy)) < 25) return;
+
+    if (Math.abs(dx) > Math.abs(dy)) {
+        move(dx > 0 ? "right" : "left");
+    } else {
+        move(dy > 0 ? "down" : "up");
+    }
+}, { passive: true });
+
+updateSettings();
+updatePlayerDisplay();
+bestElement.textContent = best;
+buildBadgeList();
+</script>
+
+</body>
+</html>
